@@ -79,9 +79,12 @@ class recognizer():
             self.last_rec=self.engine.listen(source)
         self.logger.debug("I stopped listening")
         return self.last_rec
+
     def command(self, rec):
-        com = self.recognize(self.last_rec)
+        com = self.recognize(rec)
         self.logger.debug(com)
-    def listen_command(self):
+
+    def listen_and_recognize(self):
         self.logger.debug("Understanding command")
-        self.command(self.listen())
+        com = self.recognize(self.listen())
+        return com.split(" ")

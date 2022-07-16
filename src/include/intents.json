@@ -1,0 +1,8 @@
+{
+    "timer": "self.timer",
+    "timer_num": 0,
+    "air": "self.air_conditioner",
+    "air_num": 1,
+    "conditioner": "self.air_conditioner",
+    "conditioner_num": 1
+}
