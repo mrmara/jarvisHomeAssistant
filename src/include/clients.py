@@ -1,0 +1,1 @@
+clients_list = [{"name": "jarvis_kitchen", "location": "kitchen"}]

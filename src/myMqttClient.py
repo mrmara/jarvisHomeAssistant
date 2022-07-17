@@ -1,4 +1,5 @@
 import random, string
+import time
 from awscrt import io, mqtt, auth, http
 from awsiot import mqtt_connection_builder
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
@@ -28,37 +29,34 @@ class MQTTclient():
         self.logger = logging.getLogger("JarvisMQTTClient")
 		# Spin up resources
         # Init AWSIoTMQTTClient
-        myAWSIoTMQTTClient = None
+        self.myAWSIoTMQTTClient = None
         if self.PORT == 443:
-            myAWSIoTMQTTClient = AWSIoTMQTTClient(self.CLIENT_ID_BASE, useWebsocket=True)
-            myAWSIoTMQTTClient.configureEndpoint(self.ENDPOINT, self.PORT)
-            myAWSIoTMQTTClient.configureCredentials(self.PATH_TO_ROOT)
+            self.myAWSIoTMQTTClient = AWSIoTMQTTClient(self.CLIENT_ID_BASE, useWebsocket=True)
+            self.myAWSIoTMQTTClient.configureEndpoint(self.ENDPOINT, self.PORT)
+            self.myAWSIoTMQTTClient.configureCredentials(self.PATH_TO_ROOT)
         elif self.PORT == 8883:
-            myAWSIoTMQTTClient = AWSIoTMQTTClient(self.CLIENT_ID_BASE)
-            myAWSIoTMQTTClient.configureEndpoint(self.ENDPOINT, self.PORT)
-            myAWSIoTMQTTClient.configureCredentials(self.PATH_TO_ROOT, self.PATH_TO_KEY, self.PATH_TO_CERT)
+            self.myAWSIoTMQTTClient = AWSIoTMQTTClient(self.CLIENT_ID_BASE)
+            self.myAWSIoTMQTTClient.configureEndpoint(self.ENDPOINT, self.PORT)
+            self.myAWSIoTMQTTClient.configureCredentials(self.PATH_TO_ROOT, self.PATH_TO_KEY, self.PATH_TO_CERT)
 
         # AWSIoTMQTTClient connection configuration
-        myAWSIoTMQTTClient.configureAutoReconnectBackoffTime(1, 32, 20)
-        myAWSIoTMQTTClient.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
-        myAWSIoTMQTTClient.configureDrainingFrequency(2)  # Draining: 2 Hz
-        myAWSIoTMQTTClient.configureConnectDisconnectTimeout(10)  # 10 sec
-        myAWSIoTMQTTClient.configureMQTTOperationTimeout(5)  # 5 sec
+        self.myAWSIoTMQTTClient.configureAutoReconnectBackoffTime(1, 32, 20)
+        self.myAWSIoTMQTTClient.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
+        self.myAWSIoTMQTTClient.configureDrainingFrequency(2)  # Draining: 2 Hz
+        self.myAWSIoTMQTTClient.configureConnectDisconnectTimeout(10)  # 10 sec
+        self.myAWSIoTMQTTClient.configureMQTTOperationTimeout(5)  # 5 sec
 
         # Connect and subscribe to AWS IoT
-        myAWSIoTMQTTClient.connect()
+        self.myAWSIoTMQTTClient.connect()
 
         self.logger.info(" Connecting to {} with client ID '{}'...".format(
 				self.ENDPOINT, self.CLIENT_ID_BASE))
 		# Future.result() waits until a result is available
         self.logger.info(" Connected!")
-        myAWSIoTMQTTClient.subscribe("test", 1, self.on_message)
-    
-    def on_message(client, userdata, message):
-        print("Received a new message: ")
-        print(message.payload)
-        print("from topic: ")
-        print(message.topic)
-        print("--------------\n\n")
 
+    def subscribe(self, topic, callback, qos=0):
+        return self.myAWSIoTMQTTClient.subscribe(topic, qos, callback)
+    
+    def publish(self, topic, payload, qos=0):
+        return self.myAWSIoTMQTTClient.publish(topic, payload,qos)
     
