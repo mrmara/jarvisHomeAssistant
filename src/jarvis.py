@@ -6,6 +6,8 @@ import logging
 from myMqttClient import MQTTclient
 from include.clients import clients_list
 from doers.timer import timer
+import include.interrupts as interrupts
+import threading
 class jarvis:
 
     ongoing_timer = None
@@ -19,7 +21,18 @@ class jarvis:
             self.mqtt.subscribe(client["name"]+"/request/#", self.on_message, qos=0)
             self.logger.info("Subscribed to %s topic", client["name"]+"/request/#")
             print("-------------------------")
-
+        poller_ = threading.Thread(target=self.poller)
+        poller_.start()
+        
+    def poller(self):
+        self.logger.info("Poller started")
+        while True:
+            for item in interrupts.poll_list:
+                if (item[1] == interrupts.interrupt_status.POLLME):
+                    self.logger.info("Polling %s", item[0])
+                    ret = item[0].poll_me()
+                    self.send_voice_response_to_client(ret["topic"], ret["response"])
+        
     def on_message(self, client, userdata, message):
         self.logger.info("Received a new message: ")
         self.logger.info(message.payload)
@@ -82,9 +95,14 @@ class jarvis:
             except:
                 pass
         if (secs != -1 or mins != -1):
-            self.ongoing_timer = timer(self.logger, mins, secs)
+            self.ongoing_timer = timer(self.logger, mins, secs, client_topic)
+            interrupts.poll_list.append([self.ongoing_timer, interrupts.interrupt_status.WORKING])
             self.send_voice_response_to_client(client_topic, "yes sir")
-    
+    def help(self, speechTxt, client_topic):
+        self.logger.debug("help intent")
+        self.send_voice_response_to_client(client_topic, "I can do the following things: ")
+        for key in self.intents.keys():
+            self.send_voice_response_to_client(client_topic, key)
     def air_conditioner(self):
         pass
 
