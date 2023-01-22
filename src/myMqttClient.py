@@ -6,9 +6,10 @@ from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 import os
 import logging
 from include.config import logLevel
-from include.utils import srcPath
+from include.utils import srcPath, singleton
 import signal
 
+@singleton
 class MQTTclient():
     # Define ENDPOINT, CLIENT_ID_BASE, PATH_TO_CERT, PATH_TO_KEY, PATH_TO_ROOT
     ENDPOINT = "a33k3qhzx4b7nb-ats.iot.us-east-1.amazonaws.com"
