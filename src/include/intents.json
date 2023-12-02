@@ -2,5 +2,6 @@
     "timer": "self.timer",
     "air": "self.air_conditioner",
     "conditioner": "self.air_conditioner",
-    "help": "self.help"
+    "help": "self.help",
+    "remember": "self.remember"
 }

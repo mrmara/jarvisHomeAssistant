@@ -6,6 +6,7 @@ import logging
 from myMqttClient import MQTTclient
 from include.clients import clients_list
 from doers.timer import timer
+from doers.audio_note import audio_note
 import include.interrupts as interrupts
 import threading
 class jarvis:
@@ -98,16 +99,48 @@ class jarvis:
             self.ongoing_timer = timer(self.logger, mins, secs, client_topic)
             interrupts.poll_list.append([self.ongoing_timer, interrupts.interrupt_status.WORKING])
             self.send_voice_response_to_client(client_topic, "yes sir")
+            
     def help(self, speechTxt, client_topic):
         self.logger.debug("help intent")
         self.send_voice_response_to_client(client_topic, "I can do the following things: ")
         for key in self.intents.keys():
-            self.send_voice_response_to_client(client_topic, key)
-    def air_conditioner(self):
-        pass
-
+            self.send_voice_response_to_cjarvisHomeAssistant/src/doers/timer.py
     def send_voice_response_to_client(self, topic, response):
         self.logger.info("Sending response %s", response)
         topic = topic.replace("/request","/response")
         self.mqtt.publish(topic, response)
-    
+        
+    def remember(self, speechTxt, client_topic):
+        note = []
+        hour = []
+        is_between_to_and_day = False
+        days_word = ["today", "tomorrow", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "on"]
+        for string in speechTxt:
+            if "to" == string:
+                is_between_to_and_day = True
+                continue
+            
+            for day in days_word:
+                if day == string:
+                    is_between_to_and_day = False
+                    break
+
+            if is_between_to_and_day:
+                note.append(string)
+                
+        is_after_day = False     
+           
+        for string in speechTxt:
+            
+            for day in days_word:
+                if day in string:
+                    is_after_day = True
+                    break
+            if is_after_day:
+                hour.append(string)
+                
+        self.logger.debug(note) 
+        self.logger.debug(hour)
+        inst = audio_note(self.logger, note, hour, client_topic)
+        interrupts.poll_list.append([inst, interrupts.interrupt_status.WORKING])
+        self.send_voice_response_to_client(client_topic, "yes sir")
