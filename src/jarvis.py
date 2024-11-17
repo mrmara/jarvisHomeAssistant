@@ -1,12 +1,11 @@
 from time import sleep
+import doers.timer
 from include.utils import srcPath
 import json
-from word2number import w2n
 import logging
 from myMqttClient import MQTTclient
 from include.clients import clients_list
-from doers.timer import timer
-from doers.audio_note import audio_note
+import doers
 import include.interrupts as interrupts
 import threading
 class jarvis:
@@ -21,7 +20,7 @@ class jarvis:
         for client in clients_list:
             self.mqtt.subscribe(client["name"]+"/request/#", self.on_message, qos=0)
             self.logger.info("Subscribed to %s topic", client["name"]+"/request/#")
-            print("-------------------------")
+            self.logger.info("-------------------------")
         poller_ = threading.Thread(target=self.poller)
         poller_.start()
         
@@ -41,13 +40,9 @@ class jarvis:
         self.logger.info(message.topic)
         self.logger.info("--------------\n\n")
         cmd = str(message.payload)
-        print(cmd)
         cmd = cmd[3:-3]
-        print(cmd)
         cmd = cmd.replace("'","").replace('"',"")
-        print(cmd)
         cmd = cmd.split(", ")
-        print(cmd)
         self.logger.info("commanding %s", cmd)
         self.process_command(cmd, message.topic)
 
@@ -57,54 +52,18 @@ class jarvis:
         for word in speechTxt:
             self.logger.debug(word)
             if word in self.intents.keys():
-                eval(self.intents[word]+"(speechTxt, client_topic_)")
+                eval("doers."+self.intents[word]+"(speechTxt, client_topic_,self.logger)")
                 got_command = True
                 break
         if not got_command:
             self.send_voice_response_to_client(client_topic, "I did not get you, sorry sir")
-    
-    def timer(self, speechTxt, client_topic):
-        self.logger.debug("timer intent")
-        self.logger.debug(speechTxt)
-        secs =-1
-        mins = -1
-        for i in range(0, len(speechTxt)):
-            if (speechTxt[i] == "remaining"):
-                if (self.ongoing_timer != None):
-                    remaining_time = self.ongoing_timer.get_remaining_time()
-                    response = str(remaining_time[0]) + " minutes and " + str(remaining_time[1]) + " seconds, sir"
-                    self.send_voice_response_to_client(client_topic, response)
-                else:
-                    response = str("There is not an active timer, sir")
-                    self.send_voice_response_to_client(client_topic, response)
-
-            elif (speechTxt[i] == "cancel"):
-                if (self.ongoing_timer != None):
-                    self.ongoing_timer.cancel_timer()
-                    response = str("Done, sir")
-                    self.send_voice_response_to_client(client_topic, response)
-                else:
-                    response = str("There is not an active timer, sir")
-                    self.send_voice_response_to_client(client_topic, response)
-            try:
-                num = w2n.word_to_num(speechTxt[i])
-                self.logger.debug(num)
-                if (speechTxt[i+1]=="minutes" or speechTxt[i+1]=="minute"):
-                    mins=num
-                elif(speechTxt[i+1]=="seconds" or speechTxt[i+1]=="second"):
-                    secs=num
-            except:
-                pass
-        if (secs != -1 or mins != -1):
-            self.ongoing_timer = timer(self.logger, mins, secs, client_topic)
-            interrupts.poll_list.append([self.ongoing_timer, interrupts.interrupt_status.WORKING])
-            self.send_voice_response_to_client(client_topic, "yes sir")
             
     def help(self, speechTxt, client_topic):
         self.logger.debug("help intent")
         self.send_voice_response_to_client(client_topic, "I can do the following things: ")
         for key in self.intents.keys():
-            self.send_voice_response_to_cjarvisHomeAssistant/src/doers/timer.py
+            self.send_voice_response_to_client(client_topic, key)
+            
     def send_voice_response_to_client(self, topic, response):
         self.logger.info("Sending response %s", response)
         topic = topic.replace("/request","/response")

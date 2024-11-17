@@ -5,7 +5,7 @@ from awsiot import mqtt_connection_builder
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 import os
 import logging
-from include.config import logLevel
+from include.config import logLevel, AWSlogLevel
 from include.utils import srcPath, singleton
 import signal
 
@@ -39,14 +39,13 @@ class MQTTclient():
             self.myAWSIoTMQTTClient = AWSIoTMQTTClient(self.CLIENT_ID_BASE)
             self.myAWSIoTMQTTClient.configureEndpoint(self.ENDPOINT, self.PORT)
             self.myAWSIoTMQTTClient.configureCredentials(self.PATH_TO_ROOT, self.PATH_TO_KEY, self.PATH_TO_CERT)
-
+        logging.getLogger('AWSIoTPythonSDK').setLevel(AWSlogLevel)
         # AWSIoTMQTTClient connection configuration
         self.myAWSIoTMQTTClient.configureAutoReconnectBackoffTime(1, 32, 20)
         self.myAWSIoTMQTTClient.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
         self.myAWSIoTMQTTClient.configureDrainingFrequency(2)  # Draining: 2 Hz
         self.myAWSIoTMQTTClient.configureConnectDisconnectTimeout(10)  # 10 sec
         self.myAWSIoTMQTTClient.configureMQTTOperationTimeout(5)  # 5 sec
-
         # Connect and subscribe to AWS IoT
         self.myAWSIoTMQTTClient.connect()
 

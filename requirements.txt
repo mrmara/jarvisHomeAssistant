@@ -3,3 +3,6 @@ sudo pip install SpeechRecognition
 sudo apt-get install python3-pyaudio
 sudo pip install word2number
 sudo pip install AWSIoTPythonSDK
+sudo pip install awscrt
+sudo pip install awsiot
+sudo pip install awsiotsdk

@@ -1,7 +1,5 @@
 {
-    "timer": "self.timer",
-    "air": "self.air_conditioner",
-    "conditioner": "self.air_conditioner",
-    "help": "self.help",
-    "remember": "self.remember"
+    "timer": "timer.timer_manager",
+    "help": "help",
+    "remember": "remember"
 }
