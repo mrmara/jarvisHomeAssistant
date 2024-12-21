@@ -1,5 +1,6 @@
 {
     "timer": "timer.TimerManager",
     "help": "help.Help",
-    "remember": "remember.Remember"
+    "remember": "remember.Remember",
+    "remind": "remember.Remember"
 }

@@ -3,6 +3,8 @@ from abc import ABCMeta, abstractmethod
 from threading import Lock, Thread
 import logging
 import include.interrupts as interrupts
+from include.utils import CANCEL_WORDS
+
 
 class Doer(metaclass=ABCMeta):
 
@@ -68,3 +70,9 @@ class Doer(metaclass=ABCMeta):
             return {"topic" : self.__poll_topic, "response" : self.__poll_payload}
         else:
             return None
+    def conversation(self, speechTxt: list, client_topic: str):
+        for cancel_word in CANCEL_WORDS:
+            if cancel_word in speechTxt:
+                self.set_poll_payload("Reminder cancelled.")
+                self.update_poll_status(interrupts.interrupt_status.POLLME)
+                return
