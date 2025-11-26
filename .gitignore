@@ -132,3 +132,5 @@ dmypy.json
 src/cert
 src/houndify.py
 reminders.json
+.vscode
+log
